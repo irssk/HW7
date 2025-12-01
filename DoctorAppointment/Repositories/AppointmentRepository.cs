@@ -1,13 +1,24 @@
-﻿using System.Linq;
-using DoctorAppointment.Models;
+﻿using DoctorAppointment.Models;
+using DoctorAppointment.Storage;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DoctorAppointment.Repositories
 {
     public class AppointmentRepository
     {
-        private readonly List<Appointment> _appointments = new();
-        private int _nextId = 1;
+        private readonly IStorage _storage;
+        private readonly string _file = "appointments.data";
+        private List<Appointment> _appointments;
+        private int _nextId;
+
+        public AppointmentRepository(IStorage storage)
+        {
+            _storage = storage;
+
+            _appointments = _storage.Load<Appointment>(_file);
+            _nextId = _appointments.Count == 0 ? 1 : _appointments.Max(a => a.Id) + 1;
+        }
 
         public IEnumerable<Appointment> GetAll() => _appointments;
 
@@ -18,6 +29,7 @@ namespace DoctorAppointment.Repositories
         {
             appt.Id = _nextId++;
             _appointments.Add(appt);
+            _storage.Save(_file, _appointments);
             return appt;
         }
 
@@ -30,6 +42,7 @@ namespace DoctorAppointment.Repositories
             existing.PatientId = appt.PatientId;
             existing.Date = appt.Date;
 
+            _storage.Save(_file, _appointments);
             return true;
         }
 
@@ -39,6 +52,7 @@ namespace DoctorAppointment.Repositories
             if (appt == null) return false;
 
             _appointments.Remove(appt);
+            _storage.Save(_file, _appointments);
             return true;
         }
     }

@@ -1,12 +1,18 @@
 ﻿using DoctorAppointment.Models;
 using DoctorAppointment.Repositories;
+using DoctorAppointment.Storage;
 using System;
 
 namespace DoctorAppointment.Services
 {
     public class AppointmentService
     {
-        private readonly AppointmentRepository _repo = new();
+        private readonly AppointmentRepository _repo;
+
+        public AppointmentService(IStorage storage)
+        {
+            _repo = new AppointmentRepository(storage);
+        }
 
         public void ShowAll()
         {
